@@ -1,0 +1,6 @@
+{
+  "name": "EstatePulse AI - Smart Real Estate & Off-Plan Platform",
+  "description": "Next-generation luxury real estate platform featuring AI-powered brochure parsing, automated secondary market listing generation, confidential Direct-to-Owner CRM vault, and role-based data privacy.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
