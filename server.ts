@@ -13,19 +13,19 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Initialize Google GenAI
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
-    },
-  },
-});
+// The local preview and demo routes can run without an AI credential.
+const apiKey = process.env.GEMINI_API_KEY;
+const ai = apiKey
+  ? new GoogleGenAI({
+      apiKey,
+      httpOptions: { headers: { 'User-Agent': 'aistudio-build' } },
+    })
+  : undefined;
 
 // In-Memory Database State (seeded with realistic Dubai properties & vault records)
 let listingsStore: PropertyListing[] = [...INITIAL_LISTINGS];
@@ -214,7 +214,7 @@ app.post('/api/crm/convert-to-public', async (req, res) => {
   ];
 
   try {
-    if (process.env.GEMINI_API_KEY) {
+    if (ai) {
       const prompt = `You are a luxury Dubai real estate copywriter. Write a 1-sentence catchy headline and a 2-paragraph compelling description for a ${ownerRecord.beds}-bedroom ${ownerRecord.propertyType} in ${ownerRecord.community}, ${ownerRecord.sqft} sqft, priced at ${priceAED.toLocaleString()} AED for ${listingType}.
 Do NOT mention the exact unit number or owner name. Return JSON with keys: headline, description, bulletPoints (array of 4 bullet points).`;
 
@@ -319,7 +319,7 @@ app.post('/api/ai/parse-brochure', async (req, res) => {
   let result;
 
   try {
-    if (process.env.GEMINI_API_KEY) {
+    if (ai) {
       const prompt = `You are a real estate AI parser for Dubai & International off-plan property brochures.
 Extract the structured project details from the following brochure text or factsheet.
 
@@ -630,7 +630,7 @@ app.post('/api/ai/quick-upload-secondary', async (req, res) => {
   let result;
 
   try {
-    if (process.env.GEMINI_API_KEY) {
+    if (ai) {
       const prompt = `You are an elite real estate listing specialist for Dubai luxury properties.
 Transform the following rough unstructured note or voice transcript into a polished, high-converting real estate listing.
 
@@ -833,8 +833,8 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`EstatePulse AI Real Estate Server running on http://0.0.0.0:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`EstatePulse AI Real Estate Server running on http://${HOST}:${PORT}`);
   });
 }
 
